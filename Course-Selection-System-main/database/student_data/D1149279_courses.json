@@ -1,0 +1,74 @@
+{
+    "courses": [
+        {
+            "course_id": "1409",
+            "name": "資料結構",
+            "compulsory": "必修",
+            "credits": 3,
+            "instructor": "葉春秀"
+        },
+        {
+            "course_id": "1392",
+            "name": "通訊與網路概論",
+            "compulsory": "必修",
+            "credits": 3,
+            "instructor": "劉宗杰"
+        },
+        {
+            "course_id": "1408",
+            "name": "資料結構實習",
+            "compulsory": "必修",
+            "credits": 1,
+            "instructor": "葉春秀"
+        },
+        {
+            "course_id": "1432",
+            "name": "軟體工程開發實務",
+            "compulsory": "選修",
+            "credits": 3,
+            "instructor": "許懷中"
+        },
+        {
+            "course_id": "1413",
+            "name": "物件導向設計",
+            "compulsory": "選修",
+            "credits": 2,
+            "instructor": "許懷中"
+        },
+        {
+            "course_id": "1414",
+            "name": "物件導向設計實習",
+            "compulsory": "選修",
+            "credits": 1,
+            "instructor": "許懷中"
+        },
+        {
+            "course_id": "1422",
+            "name": "作業系統(一)",
+            "compulsory": "必修",
+            "credits": 3,
+            "instructor": "林志敏"
+        },
+        {
+            "course_id": "2776",
+            "name": "專案管理",
+            "compulsory": "選修",
+            "credits": 3,
+            "instructor": "葉春秀"
+        },
+        {
+            "course_id": "3678",
+            "name": "遊戲化模組學習法之程式設計",
+            "compulsory": "選修",
+            "credits": 2,
+            "instructor": "葉春秀"
+        },
+        {
+            "course_id": "1452",
+            "name": "管理資訊系統",
+            "compulsory": "選修",
+            "credits": 3,
+            "instructor": "葉春秀"
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+/* 設置課程列表表格容器的最大高度和滾動條 */
+.scrollable-table {
+    max-height: 600px;  /* 根據需要調整最大高度 */
+    overflow-y: scroll;
+}
+
+/* 固定表头 */
+.scrollable-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* 滾動條樣式 */
+.scrollable-table::-webkit-scrollbar {
+    width: 8px;  /* 滾動條寬度 */
+}
+
+/* 滾動條的控制區域 */
+.scrollable-table::-webkit-scrollbar-thumb {
+    background-color: #888;  /* 滾動條的顏色 */
+}
+
+/* 滾動條的背景 */
+.scrollable-table::-webkit-scrollbar-track {
+    background: #f1f1f1;   /* 滾動條背景顏色 */
+}
+
+/* 滾動條在沒有滾動內容時隱藏 */
+.scrollable-table:not(:hover)::-webkit-scrollbar {
+    width: 0;  /* 滾動條在沒有滾動內容時隱藏 */
+}

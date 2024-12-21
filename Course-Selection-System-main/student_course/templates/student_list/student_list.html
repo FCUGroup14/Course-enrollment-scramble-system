@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>學生清單</title>
+</head>
+<body>
+
+    <div class="container my-4">
+        <h1 class="mt-5 d-flex justify-content-between align-items-center">
+            登入資訊
+            <a href="{{ url_for('login.logout') }}" class="btn btn-secondary">登出</a>
+        </h1>
+        <p>帳號：{{ assistant['id'] }}</p>
+        <p>姓名：{{ assistant['name'] }}</p>
+        <p>單位：{{ assistant['department'] }}</p>
+        
+        <h1 class="mt-5">學生名單</h1>
+        <form method="get" class="my-3">
+            <div class="input-group">
+                <input type="text" class="form-control" name="query" placeholder="輸入學生 ID 或姓名查詢" value="{{ request.args.get('query', '') }}">
+                <button type="submit" class="btn btn-primary">搜尋</button>
+            </div>
+        </form>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>學生 ID</th>
+                    <th>姓名</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student['id'] }}</td>
+                    <td>{{ student['name'] }}</td>
+                    <td>
+                        <a href="{{ url_for('student_list.student_courses', id=student['id']) }}" class="btn btn-primary btn-sm">查看課程</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
