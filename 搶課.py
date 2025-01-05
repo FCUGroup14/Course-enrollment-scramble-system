@@ -126,7 +126,6 @@ try:
                             count += 1
                             print(f"課程 {course_id} 已成功加選")
                             
-
                     else:
                         print(f"加選失敗:課程 {course_id} 名額不足")
 
