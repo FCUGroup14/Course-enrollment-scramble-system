@@ -1,15 +1,16 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import TimeoutException, NoAlertPresentException, NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
+import time
 
 # 使用者輸入帳號、密碼和課程代碼
 user_account = 'D1149279'
 user_password = '1149279'
-course_ids = ['1450', '2776','1433']  # 要選的課程清單
+course_ids = ['1433']  # 要選的課程清單
 successfully_enrolled_courses = []  # 追蹤成功加選的課程
 
 # 設定 WebDriver
@@ -17,34 +18,36 @@ driver = webdriver.Chrome()
 
 def check_enrollment_failure(driver):
     try:
-        # 使用更靈活的XPath選擇器來匹配錯誤訊息
-        error_message = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((
-                By.XPATH, 
-                "//div[contains(@class, 'alert-primary')]//p[normalize-space()]"
-            ))
+        # 等待錯誤訊息出現
+        WebDriverWait(driver, 5).until(
+            EC.text_to_be_present_in_element(
+                (By.ID, "flash-message-2"),
+                "加選後超過 25 學分"  # 部分錯誤訊息即可
+            )
         )
+        # 確認並打印錯誤訊息
+        error_message_element = driver.find_element(By.ID, "flash-message-2")
+        message_text = error_message_element.text.strip()
         
-        # 獲取錯誤訊息文本並去除首尾空白
-        message_text = error_message.text.strip()
-        print(f"檢測到錯誤訊息: {message_text}")
-        
-        # 檢查錯誤訊息是否包含學分超過的提示
+        # 檢查是否包含學分超過的提示
         if '加選後超過 25 學分' in message_text:
             print("加選失敗: 學分數超過限制")
+            # 等待訊息自動消失（因為有 2 秒自動消失的設定）
+            time.sleep(2)
             return True
         else:
             print(f"其他錯誤訊息: {message_text}")
+            time.sleep(2)  # 同樣等待訊息消失
             return False
             
     except TimeoutException:
-        print("等待錯誤訊息超時")
+        print("未檢測到錯誤訊息")
         return False
     except NoSuchElementException:
         print("未找到錯誤訊息元素")
         return False
     except Exception as e:
-        print(f"發生未預期的錯誤: {str(e)}")
+        print(f"檢查選課狀態時發生錯誤: {str(e)}")
         return False
 
 def click_element_safely(element, wait_time=10):
@@ -56,10 +59,10 @@ def click_element_safely(element, wait_time=10):
         
         try:
             element.click()
-        except Exception as e:
+        except Exception:
             try:
                 driver.execute_script("arguments[0].click();", element)
-            except Exception as e:
+            except Exception:
                 try:
                     ActionChains(driver).move_to_element(element).click().perform()
                 except Exception as e:
@@ -80,32 +83,38 @@ def handle_and_get_alert():
     except (TimeoutException, NoAlertPresentException):
         print("沒有找到 alert")
         return None
+
 def click_add_course_button(course_id):
     try:
+        wait = WebDriverWait(driver, 10)
         # 找到課程所在的行
         course_row = wait.until(EC.presence_of_element_located(
             (By.XPATH, f"//tr[contains(., '{course_id}')]")
         ))
 
-        # 檢查是否已經有「退選」按鈕，表示已加選
+        # 檢查是否已經有「退選」按鈕
         try:
             withdraw_button = course_row.find_element(By.XPATH, ".//button[text()='退選']")
             print(f"課程 {course_id} 已加選過，跳過此課程")
-            return False  # 課程已加選，跳過
+            return False
         except NoSuchElementException:
-            pass  # 沒有找到「退選」按鈕，繼續處理
+            pass
 
-        # 檢查「加選」按鈕是否存在
+        # 尋找並點擊「加選」按鈕
         add_button = course_row.find_element(By.XPATH, ".//button[text()='加選']")
         driver.execute_script("arguments[0].scrollIntoView(true);", add_button)
-        time.sleep(1)  # 等待按鈕滾動完成
+        time.sleep(1)
 
-        # 點擊加選按鈕
         click_element_safely(add_button)
+        
+        # 等待可能出現的錯誤訊息
+        time.sleep(1)
         return True
+
     except Exception as e:
         print(f"無法加選課程 {course_id}：{e}")
         return False
+
 try:
     # 開啟本機選課系統
     driver.get("http://127.0.0.1:5000/")
@@ -122,19 +131,19 @@ try:
     password_input.send_keys(user_password)
     login_button.click()
 
-    time.sleep(2)  # 等待登入完成
+    time.sleep(1)  # 等待登入完成
 
     # 點擊查詢與選課頁籤
     search_choose = wait.until(EC.presence_of_element_located((By.ID, "nav-profile-2")))
-
     search_choose.click()
-    # 依次處理每個課程代碼
 
+    # 持續執行直到所有課程都選到
     while sorted(successfully_enrolled_courses) != sorted(course_ids):
-
         for course_id in course_ids:
+            if course_id in successfully_enrolled_courses:
+                continue
+
             # 搜尋課程
-        # 輸入課程代碼並執行搜尋
             course_id_input = wait.until(EC.presence_of_element_located((By.ID, "course_id")))
             search_button = wait.until(EC.presence_of_element_located(
                 (By.CSS_SELECTOR, "button.btn.btn-primary")
@@ -165,21 +174,18 @@ try:
                     if available_slots_int0 < available_slots_int1:
                         time.sleep(1)  # 確保 alert 完全關閉
 
-                        # 重新找到目標課程的行
-                        course_row = wait.until(EC.presence_of_element_located(
-                            (By.XPATH, f"//tr[contains(., '{course_id}')]")
-                        ))
-
-                      # 檢查是否已經加選過
+                        # 嘗試加選課程
                         if click_add_course_button(course_id):
                             if check_enrollment_failure(driver):
                                 print(f"課程 {course_id} 加選失敗，超過學分限制")
+                                time.sleep(1)  # 等待錯誤訊息消失
+                                
                             else:
-                                if not course_id in successfully_enrolled_courses :
+                                if course_id not in successfully_enrolled_courses:
                                     successfully_enrolled_courses.append(course_id)
                                 print(f"課程 {course_id} 已成功加選")
                         else:
-                            if not course_id in successfully_enrolled_courses :
+                            if course_id not in successfully_enrolled_courses:
                                 successfully_enrolled_courses.append(course_id)
                             print(f"課程 {course_id} 已加選過了")
                     else:
@@ -189,12 +195,12 @@ try:
                     print(f"無法獲取課程 {course_id} 的餘額信息")
 
             except NoSuchElementException:
-                if not course_id in successfully_enrolled_courses :
+                if course_id not in successfully_enrolled_courses:
                     successfully_enrolled_courses.append(course_id)
                 print(f"課程 {course_id} 已加選過了")
 
             print(f'目前已成功加選的課程: {successfully_enrolled_courses}')
-            time.sleep(2)  # 等待下一次搜尋
+            time.sleep(1)  # 等待下一次搜尋
 
 finally:
     print(f'已成功加選的課程: {successfully_enrolled_courses}')
