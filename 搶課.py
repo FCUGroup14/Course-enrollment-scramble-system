@@ -27,20 +27,21 @@ driver = webdriver.Chrome()
 
 def check_flash_message():
     try:
-        # 檢查頁面上是否有提示訊息
-        flash_message = driver.find_element(By.CSS_SELECTOR, ".alert.alert-primary")
-        message_text = flash_message.text
-        if "加選後超過 25 學分，無法加選此課程！" in message_text:
+        WebDriverWait(driver, 1).until(
+            EC.text_to_be_present_in_element((By.ID, "flash-message-2"), "加選後超過 25 學分")
+        )
+        flash_message = driver.find_element(By.ID, "flash-message-2")
+        if "加選後超過 25 學分，無法加選此課程！" in flash_message.text:
             return True
-    except NoSuchElementException:
+    except TimeoutException:
         return False
+
 
 def handle_and_get_alert():
     try:
-        wait = WebDriverWait(driver, 5)
+        wait = WebDriverWait(driver, 1)
         alert = wait.until(EC.alert_is_present())
         alert_text = alert.text
-        print(f"Alert 內容: '{alert_text}'")
         alert.accept()
         return alert_text
     except (TimeoutException, NoAlertPresentException):
@@ -63,7 +64,7 @@ try:
     password_input.send_keys(user_password)
     login_button.click()
 
-    time.sleep(2)  # 等待登入完成
+    time.sleep(1)  # 等待登入完成
 
     # 點擊 "查詢與選課" 按鈕
     search_choose = driver.find_element(By.ID, "nav-profile-2")
@@ -74,8 +75,6 @@ try:
     # 依次處理每個課程代碼
     while count < number_of_courses:
         for course_id in course_ids:
-            #course_id = course_id.strip()  # 去除多餘的空白
-            #print(f"正在處理課程代碼: {course_id}")
 
             # 搜尋課程
             search_input = driver.find_element(By.NAME, "course_id")
@@ -85,7 +84,7 @@ try:
             search_input.send_keys(course_id)
             search_button.click()
 
-            time.sleep(2)  # 等待搜尋結果
+            time.sleep(1)  # 等待搜尋結果
 
             try:
                 # 找到並點擊餘額按鈕
@@ -117,35 +116,27 @@ try:
                         driver.execute_script("arguments[0].scrollIntoView(true);", add_button)
                         time.sleep(1)
 
-                        # 找到已選學分和每門課程的學分
-                        #total_credits = course_row.find_element(By.CLASS_NAME, "total-credits").text
-                        #total_credits = int(total_credits)  # 轉換成整數
-
-                        #each_course_credits = course_row.find_element(By.CLASS_NAME, "course-credits").text
-                        #each_course_credits = int(each_course_credits)  # 轉換成整數
-
-                        # 檢查加選課程後的總學分是否超過25學分
-                        #if total_credits + each_course_credits <= 25:
                         add_button.click()  # 點擊 "加選" 按鈕
 
                         # 檢查是否有學分已滿的提示訊息
                         if check_flash_message():
-                            print(f"學分已滿")
+                            print(f"加選失敗:學分已滿")
+                            continue
                         else:
                             count += 1
                             print(f"課程 {course_id} 已成功加選")
                             
 
                     else:
-                        print(f"課程 {course_id} 名額不足")
+                        print(f"加選失敗:課程 {course_id} 名額不足")
 
                 else:
-                    print(f"無法獲取課程 {course_id} 的餘額信息")
+                    print(f"加選失敗:無法獲取課程 {course_id} 的餘額信息")
 
             except NoSuchElementException:
-                print(f"課程 {course_id} 已加選")
+                print(f"加選失敗:課程 {course_id} 已加選")
 
-            time.sleep(2)  # 等待下一次搜尋
+            time.sleep(1)  # 等待下一次搜尋
 
 finally:
     # 關閉瀏覽器
