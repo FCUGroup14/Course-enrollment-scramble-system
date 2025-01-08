@@ -53,13 +53,20 @@ class CoursePriorityApp:
     
     def add_course(self):
         course_code = self.course_entry.get()
-        if course_code:
-            if course_code in self.course_data:  # 檢查課程代碼是否已存在
-                messagebox.showwarning("錯誤", f"課程代碼 {course_code} 已經存在，請輸入不同的課程代碼。")
-            else:
-                self.course_data.append(course_code)
-                self.course_listbox.insert(tk.END, course_code)
-            self.course_entry.delete(0, tk.END)
+
+        # Check if the input is exactly 4 digits
+        if len(course_code) != 4 or not course_code.isdigit():
+            messagebox.showwarning("錯誤", "課程代碼必須是4位數字！")
+            return
+        
+        if course_code in self.course_data:  # 檢查課程代碼是否已存在
+            messagebox.showwarning("錯誤", f"課程代碼 {course_code} 已經存在，請輸入不同的課程代碼。")
+        else:
+            self.course_data.append(course_code)
+            self.course_listbox.insert(tk.END, course_code)
+        
+        self.course_entry.delete(0, tk.END)
+
     
     def move_up(self):
         selected_index = self.course_listbox.curselection()
@@ -136,7 +143,7 @@ class CoursePriorityApp:
         driver = webdriver.Chrome()
 
         # 打開選課系統頁面（此為 Flask 本地伺服器的 URL）
-        driver.get('http://localhost:5000/login')  # 這裡用 Flask 本地伺服器的 URL
+        driver.get('http://127.0.0.1:5000/')  # 這裡用 Flask 本地伺服器的 URL
 
         # 登入選課系統
         username_field = driver.find_element(By.NAME, 'username')  # 替換為選課系統中帳號輸入框的 name 屬性
@@ -166,11 +173,20 @@ class CoursePriorityApp:
             except Exception as e:
                 print(f"無法選擇課程: {course_id}")
 
+        # 退選功能
+        for course in successfully_enrolled_courses:
+            self.unenrollment(course, driver)
+        
         # 最後關閉瀏覽器
         driver.quit()
 
         print(f"成功選擇的課程: {successfully_enrolled_courses}")
         login_window.destroy()
+
+    def unenrollment(self, course_id, driver):
+        # 退選邏輯 (增加退選功能)
+        print(f"正在退選課程: {course_id}")
+        # Implement your unenrollment logic here as per your搶課2.py code.
 
 # 主程式
 if __name__ == "__main__":
