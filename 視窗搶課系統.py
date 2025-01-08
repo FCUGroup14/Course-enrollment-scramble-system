@@ -1,5 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
 class CoursePriorityApp:
     def __init__(self, root):
@@ -41,6 +46,10 @@ class CoursePriorityApp:
         # 儲存課程按鈕
         self.save_button = tk.Button(root, text="儲存課程順序", command=self.save_courses)
         self.save_button.pack(pady=10)
+        
+        # 完成選課按鈕
+        self.complete_button = tk.Button(root, text="選課完成，開始搶課", command=self.show_login_window)
+        self.complete_button.pack(pady=10)
     
     def add_course(self):
         course_code = self.course_entry.get()
@@ -90,6 +99,78 @@ class CoursePriorityApp:
             for course in self.course_data:
                 f.write(course + "\n")
         messagebox.showinfo("儲存成功", "課程順序已儲存!")
+    
+    def show_login_window(self):
+        # 彈出視窗讓使用者輸入帳號和密碼
+        login_window = tk.Toplevel(self.root)
+        login_window.title("登入選課系統")
+
+        tk.Label(login_window, text="帳號：").pack(pady=5)
+        account_entry = tk.Entry(login_window, width=30)
+        account_entry.pack(pady=5)
+        
+        tk.Label(login_window, text="密碼：").pack(pady=5)
+        password_entry = tk.Entry(login_window, width=30, show="*")
+        password_entry.pack(pady=5)
+
+        login_button = tk.Button(login_window, text="登入並搶課", command=lambda: self.start_enrollment(account_entry, password_entry, login_window))
+        login_button.pack(pady=10)
+    
+    def start_enrollment(self, account_entry, password_entry, login_window):
+        user_account = account_entry.get()
+        user_password = password_entry.get()
+
+        if not user_account or not user_password:
+            messagebox.showwarning("錯誤", "帳號或密碼不可為空！")
+            return
+
+        # 讀取課程優先順序
+        try:
+            with open("course_priority.txt", "r") as file:
+                course_ids = [line.strip() for line in file.readlines()]
+        except FileNotFoundError:
+            messagebox.showerror("錯誤", "課程順序檔案不存在，請先設定課程順序！")
+            return
+        
+        # 使用 Selenium 開啟瀏覽器並操作 Flask 選課系統
+        driver = webdriver.Chrome()
+
+        # 打開選課系統頁面（此為 Flask 本地伺服器的 URL）
+        driver.get('http://localhost:5000/login')  # 這裡用 Flask 本地伺服器的 URL
+
+        # 登入選課系統
+        username_field = driver.find_element(By.NAME, 'username')  # 替換為選課系統中帳號輸入框的 name 屬性
+        password_field = driver.find_element(By.NAME, 'password')  # 替換為選課系統中密碼輸入框的 name 屬性
+
+        username_field.send_keys(user_account)
+        password_field.send_keys(user_password)
+
+        login_button = driver.find_element(By.XPATH, '//*[@id="login_button"]')  # 替換為選課系統中登入按鈕的 XPATH
+        login_button.click()
+
+        # 等待頁面載入完成
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'course_selection_page')))  # 替換為課程選擇頁面的元素 ID
+
+        # 開始搶課
+        successfully_enrolled_courses = []  # 追蹤成功加選的課程
+        for course_id in course_ids:
+            try:
+                # 找到並選擇課程
+                course_button = driver.find_element(By.XPATH, f'//button[@data-course-id="{course_id}"]')  # 替換為課程選擇按鈕的 XPATH
+                course_button.click()
+                successfully_enrolled_courses.append(course_id)
+                print(f"已成功選擇課程: {course_id}")
+                
+                # 等待確認
+                time.sleep(2)
+            except Exception as e:
+                print(f"無法選擇課程: {course_id}")
+
+        # 最後關閉瀏覽器
+        driver.quit()
+
+        print(f"成功選擇的課程: {successfully_enrolled_courses}")
+        login_window.destroy()
 
 # 主程式
 if __name__ == "__main__":
