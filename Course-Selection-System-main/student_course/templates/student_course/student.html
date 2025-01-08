@@ -22,7 +22,6 @@
                 <button style="font-size: medium;" class="nav-link" id="nav-home-1" data-bs-toggle="tab" data-bs-target="#nav-1" role="tab" aria-controls="nav-1" aria-selected="false">已選課程</button>
                 <button style="font-size: medium;" class="nav-link" id="nav-profile-2" data-bs-toggle="tab" data-bs-target="#nav-2" role="tab" aria-controls="nav-2" aria-selected="false">查詢與選課</button>
                 <button style="font-size: medium;" class="nav-link" id="nav-contact-3" data-bs-toggle="tab" data-bs-target="#nav-3" role="tab" aria-controls="nav-3" aria-selected="false">開課資訊</button>
-                <button style="font-size: medium;" class="nav-link" id="nav-priority-4" data-bs-toggle="tab" data-bs-target="#nav-4" role="tab" aria-controls="nav-4" aria-selected="false">搶課優先順序</button>
             </div>
         </nav>
 
@@ -282,20 +281,6 @@
             </div>
         </div>
     </div>
-
-     <!-- 在 tab-content 中添加新的標籤頁內容 -->
-    <div class="tab-pane fade" id="nav-4" role="tabpanel" aria-labelledby="nav-priority-4">
-        <div id="priority-setup-root"></div>
-    </div>
-
-        <!-- 在 body 結束標籤前添加必要的 React 相關腳本 -->
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script type="text/babel" src="{{ url_for('static', filename='js/CoursePrioritySetup.js') }}"></script>
-    <script type="text/babel">
-        ReactDOM.render(<CoursePrioritySetup />, document.getElementById('priority-setup-root'));
-    </script>
     
     <script src="/static/js/course_search_clear.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
