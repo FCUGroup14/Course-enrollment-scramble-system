@@ -6,7 +6,6 @@ from student_course.student_course import student_course_bp
 from student_course.student_list import student_list_bp
 from course_list.course_list import course_list_bp
 from course_list.create_course import create_course_bp
-from api_routes import api_bp  # 新增這行
 from dotenv import load_dotenv
 
 
@@ -21,7 +20,6 @@ app.register_blueprint(create_course_bp, url_prefix='/create_course')
 app.register_blueprint(course_list_bp, url_prefix='/course_list')
 app.register_blueprint(student_list_bp, url_prefix='/student_list')
 app.register_blueprint(student_course_bp, url_prefix='/student_course')
-app.register_blueprint(api_bp, url_prefix='/api')  # 新增這行
 
 
 if __name__ == "__main__":
